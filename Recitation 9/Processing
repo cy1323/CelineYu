@@ -1,0 +1,104 @@
+import processing.video.*; 
+
+import processing.serial.*;
+
+String myString = null;
+Serial myPort;
+
+int PORT_INDEX = 9;
+
+int NUM_OF_VALUES = 2; 
+int[] sensorValues;  
+
+Capture cam; 
+
+int size = 10; 
+int rectSize = 10; 
+
+int resizing; 
+int hue; 
+
+void setup() {
+  size(500, 500);
+  background(0);
+  setupSerial();
+
+  colorMode (HSB);
+  
+  cam =  new Capture  (this, 640, 480); 
+  cam.start();
+}
+
+
+void draw() {
+  background(0);
+  updateSerial();
+  printArray(sensorValues);
+
+  size = int(map(sensorValues[0], 0, 1023, 10, 50)); 
+
+  resizing  = sensorValues[0];
+  hue = sensorValues[1];
+
+  resizing = int(map(resizing, 0, 1023, 0, 20)); 
+  hue = int (map(hue, 0, 1023, 0, 255));
+
+  if (cam.available()) {
+    cam.read();
+    cam.loadPixels();
+  }
+
+
+  for (int y = 0; y < cam.height; y = y + rectSize) {
+    for (int x = 0; x < cam.width; x = x + rectSize) {
+      int i = y * cam.width + x; 
+
+      fill(cam.pixels[i]); 
+      rect(width-x, y, resizing, resizing);
+      
+      fill(hue, 100, 100, 100); // ColorMode(HSB):  color, saturation, brightness, opacity
+      rect(width-x, y, resizing, resizing);
+    }
+  } 
+  //tint(255,0,0);
+  cam.updatePixels();
+  //tint(255,0,0);
+  //image(cam,0,0);
+} 
+
+
+
+void setupSerial() {
+  printArray(Serial.list());
+  myPort = new Serial(this, Serial.list()[ PORT_INDEX ], 9600);
+
+  myPort.clear();
+
+  myString = myPort.readStringUntil( 10 );  // 10 = '\n'  Linefeed in ASCII
+  myString = null;
+
+  sensorValues = new int[NUM_OF_VALUES];
+}
+
+
+
+void updateSerial() {
+  while (myPort.available() > 0) {
+    myString = myPort.readStringUntil( 10 ); // 10 = '\n'  Linefeed in ASCII
+    if (myString != null) {
+      String[] serialInArray = split(trim(myString), ",");
+      if (serialInArray.length == NUM_OF_VALUES) {
+        for (int i=0; i<serialInArray.length; i++) {
+          sensorValues[i] = int(serialInArray[i]);
+        }
+      }
+    }
+  }
+}
+
+void keyPressed() {
+  if (key == CODED); 
+  if (keyCode == SHIFT) {
+    saveFrame("###.jpg");
+  }
+}
