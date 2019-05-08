@@ -1,0 +1,30 @@
+import processing.video.*; 
+
+Movie myMovie; 
+void setup() {
+  size(1200,700); 
+  myMovie = new Movie (this, "nye.mp4"); 
+  myMovie.play(); 
+}
+
+void draw() {
+  if (myMovie.available()) {
+    myMovie.read(); 
+  }
+  
+  pushMatrix();
+ 
+ translate(mouseX, mouseY);
+  image(myMovie, 0, 0); 
+  
+  popMatrix();
+  float timeStamp = myMovie.time(); 
+  
+  println(timeStamp); 
+  
+  if (timeStamp > 10) {
+    tint(100, 255,0); 
+  } else {
+    tint(255, 0 , 0);
+  } 
+}
